@@ -18,8 +18,12 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      //undo
+      "lib/generated/prisma/**", // ✅ ignore all Prisma generated files
+//undo
     ],
-  },
+  }
+
 ];
 
 export default eslintConfig;
