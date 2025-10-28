@@ -1,16 +1,21 @@
 //import { PrismaClient } from '@prisma/client';
+//doubt
 import { PrismaClient } from '../lib/generated/prisma';
+//doybt end
 import { prisma } from '@/db/prisma';
 import sampleData from './sample-data';
 import { hash } from '@/lib/encrypt';
 
 async function main() {
-  //const prisma = new PrismaClient();
+  //doubt
+  const prisma = new PrismaClient();
+  //doubt end
+
   await prisma.product.deleteMany();
-  // await prisma.account.deleteMany();
-  // await prisma.session.deleteMany();
-  // await prisma.verificationToken.deleteMany();
-  // await prisma.user.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.user.deleteMany();
 
   await prisma.product.createMany({ data: sampleData.products });
   // const users = [];
@@ -24,7 +29,7 @@ async function main() {
   //     await hash(sampleData.users[i].password)
   //   );
   // }
-  // await prisma.user.createMany({ data: users });
+   await prisma.user.createMany({ data: sampleData.users });
 
   console.log('Database seeded successfully!');
 }

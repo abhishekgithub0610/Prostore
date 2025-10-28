@@ -1,17 +1,19 @@
-// 'use server';
+"use server";
 
-// import {
-//   shippingAddressSchema,
-//   signInFormSchema,
-//   signUpFormSchema,
-//   paymentMethodSchema,
-//   updateUserSchema,
-// } from '../validators';
-// import { auth, signIn, signOut } from '@/auth';
-// import { isRedirectError } from 'next/dist/client/components/redirect-error';
-// import { hash } from '../encrypt';
-// import { prisma } from '@/db/prisma';
-// import { formatError } from '../utils';
+import {
+  shippingAddressSchema,
+  signInFormSchema,
+  signUpFormSchema,
+  paymentMethodSchema,
+  updateUserSchema,
+} from "../validators";
+import { auth, signIn, signOut } from "@/auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { hash } from "../encrypt";
+import { prisma } from "@/db/prisma";
+import { formatError } from "../utils";
+import { hashSync } from "bcrypt-ts-edge";
+import { redirect } from "next/navigation";
 // import { ShippingAddress } from '@/types';
 // import { z } from 'zod';
 // import { PAGE_SIZE } from '../constants';
@@ -19,76 +21,113 @@
 // import { Prisma } from '@prisma/client';
 // import { getMyCart } from './cart.actions';
 
-// // Sign in the user with credentials
+// Sign in the user with credentials
+
+type SignInActionState = {
+  success: boolean;
+  message: string;
+};
+
+type SignUpResponse = {
+  success: boolean;
+  message: string;
+};
+
+//myfix
 // export async function signInWithCredentials(
 //   prevState: unknown,
 //   formData: FormData
 // ) {
-//   try {
-//     const user = signInFormSchema.parse({
-//       email: formData.get('email'),
-//       password: formData.get('password'),
-//     });
+export async function signInWithCredentials(
+  prevState: unknown,
+  formData: FormData
+): Promise<SignInActionState> {
+  //myfix end
+  try {
+    const user = signInFormSchema.parse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
 
-//     await signIn('credentials', user);
+    await signIn("credentials", user);
 
-//     return { success: true, message: 'Signed in successfully' };
-//   } catch (error) {
-//     if (isRedirectError(error)) {
-//       throw error;
-//     }
-//     return { success: false, message: 'Invalid email or password' };
-//   }
-// }
+    return { success: true, message: "Signed in successfully" };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    return { success: false, message: "Invalid email or password" };
+  }
+}
 
-// // Sign user out
-// export async function signOutUser() {
-//   // get current users cart and delete it so it does not persist to next user
-//   const currentCart = await getMyCart();
+// Sign user out
+export async function signOutUser() {
+  // get current users cart and delete it so it does not persist to next user
+  //const currentCart = await getMyCart();
 
-//   if (currentCart?.id) {
-//     await prisma.cart.delete({ where: { id: currentCart.id } });
-//   } else {
-//     console.warn('No cart found for deletion.');
-//   }
-//   await signOut();
-// }
+  //   if (currentCart?.id) {
+  //     await prisma.cart.delete({ where: { id: currentCart.id } });
+  //   } else {
+  //     console.warn('No cart found for deletion.');
+  //   }
 
-// // Sign up user
-// export async function signUpUser(prevState: unknown, formData: FormData) {
-//   try {
-//     const user = signUpFormSchema.parse({
-//       name: formData.get('name'),
-//       email: formData.get('email'),
-//       password: formData.get('password'),
-//       confirmPassword: formData.get('confirmPassword'),
-//     });
+  //undo
+  //await signOut();
 
-//     const plainPassword = user.password;
+  await signOut({ redirect: false });
 
-//     user.password = await hash(user.password);
+  // Manually redirect to the sign-in page
+  redirect("/sign-in");
+  //undo end
+}
 
-//     await prisma.user.create({
-//       data: {
-//         name: user.name,
-//         email: user.email,
-//         password: user.password,
-//       },
-//     });
+// Sign up user
+export async function signUpUser(
+  prevState: unknown,
+  formData: FormData
+): Promise<SignUpResponse> {
+  try {
+    const user = signUpFormSchema.parse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+    });
 
-//     await signIn('credentials', {
-//       email: user.email,
-//       password: plainPassword,
-//     });
+    const plainPassword = user.password;
 
-//     return { success: true, message: 'User registered successfully' };
-//   } catch (error) {
-//     if (isRedirectError(error)) {
-//       throw error;
-//     }
-//     return { success: false, message: formatError(error) };
-//   }
-// }
+    //undo
+    //user.password = await hash(user.password);
+    user.password = hashSync(user.password, 10);
+    //undo ends
+
+    await prisma.user.create({
+      data: {
+        name: user.name,
+        email: user.email,
+        password: user.password,
+      },
+    });
+
+    await signIn("credentials", {
+      email: user.email,
+      password: plainPassword,
+    });
+
+    return { success: true, message: "User registered successfully" };
+  } catch (error) {
+    // console.log(error.name);
+    // console.log(error.code);
+    // console.log(error.errors);
+    // console.log(error.meta?.target);
+    console.log("log error");
+    console.log(error);
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    return { success: false, message: formatError(error) };
+  }
+}
 
 // // Get user by the ID
 // export async function getUserById(userId: string) {

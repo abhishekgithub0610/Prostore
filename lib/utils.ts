@@ -22,30 +22,50 @@ export function formatNumberWithDecimal(num: number): string {
   return decimal ? `${int}.${decimal.padEnd(2, '0')}` : `${int}.00`;
 }
 
-// // Format errors
-// // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// export function formatError(error: any) {
-//   if (error.name === 'ZodError') {
-//     // Handle Zod error
-//     const fieldErrors = Object.keys(error.errors).map(
-//       (field) => error.errors[field].message
-//     );
+// Format errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function formatError(error: any) {
 
-//     return fieldErrors.join('. ');
-//   } else if (
-//     error.name === 'PrismaClientKnownRequestError' &&
-//     error.code === 'P2002'
-//   ) {
-//     // Handle Prisma error
-//     const field = error.meta?.target ? error.meta.target[0] : 'Field';
-//     return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-//   } else {
-//     // Handle other errors
-//     return typeof error.message === 'string'
-//       ? error.message
-//       : JSON.stringify(error.message);
-//   }
-// }
+  
+  //my fix
+    if (error?.name === 'ZodError') {
+    // ✅ ZodError has an "issues" array, not "errors"
+    const issues = error.issues || error.errors || [];
+
+    if (Array.isArray(issues) && issues.length > 0) {
+      // Each issue usually has a 'message'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fieldErrors = issues.map((e: any) => e.message || 'Validation error');
+      return fieldErrors.join('. ');
+    }
+
+    return 'Validation failed. Please check your input.';
+  } 
+  
+  // if (error.name === 'ZodError') {
+  //   // Handle Zod error
+  //   const fieldErrors = Object.keys(error.errors).map(
+  //     (field) => error.errors[field].message
+  //   );
+
+  //   return fieldErrors.join('. ');
+  // }
+  //myfix ends
+  
+  else if (
+    error.name === 'PrismaClientKnownRequestError' &&
+    error.code === 'P2002'
+  ) {
+    // Handle Prisma error
+    const field = error.meta?.target ? error.meta.target[0] : 'Field';
+    return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+  } else {
+    // Handle other errors
+    return typeof error.message === 'string'
+      ? error.message
+      : JSON.stringify(error.message);
+  }
+}
 
 // // Round number to 2 decimal places
 // export function round2(value: number | string) {
