@@ -1,6 +1,6 @@
-//import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 //doubt
-import { PrismaClient } from '../lib/generated/prisma';
+//import { PrismaClient } from '../lib/generated/prisma';
 //doybt end
 import { prisma } from '@/db/prisma';
 import sampleData from './sample-data';
