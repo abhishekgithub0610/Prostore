@@ -5,7 +5,9 @@ import { LATEST_PRODUCTS_LIMIT, PAGE_SIZE } from '../constants';
 import { revalidatePath } from 'next/cache';
 //import { insertProductSchema, updateProductSchema } from '../validators';
 //import { z } from 'zod';
-import { PrismaClient } from '../generated/prisma';
+//import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
+
 
 //abhishek starts
 //doubtstarts
